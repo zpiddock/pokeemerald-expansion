@@ -40,6 +40,7 @@
 #include "constants/metatile_behaviors.h"
 #include "constants/songs.h"
 #include "constants/trainer_hill.h"
+#include "tx_registered_items_menu.h"
 
 static EWRAM_DATA u8 sWildEncounterImmunitySteps = 0;
 static EWRAM_DATA u16 sPrevMetatileBehavior = 0;
@@ -230,8 +231,19 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     if (input->tookStep && TryFindHiddenPokemon())
         return TRUE;
 
-    if (input->pressedSelectButton && UseRegisteredKeyItemOnField() == TRUE)
-        return TRUE;
+    if (input->pressedSelectButton)
+    {
+        if (gSaveBlock1Ptr->registeredItemListCount == 1) 
+        {
+            UseRegisteredKeyItemOnField(1);
+            return TRUE;
+        }
+        else if (gSaveBlock1Ptr->registeredItemListCount > 0)
+        {
+            TxRegItemsMenu_OpenMenu();
+            return TRUE;
+        }
+    }
 
     if (input->pressedRButton && TryStartDexNavSearch())
         return TRUE;
