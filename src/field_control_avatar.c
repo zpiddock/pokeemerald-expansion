@@ -29,6 +29,7 @@
 #include "secret_base.h"
 #include "sound.h"
 #include "start_menu.h"
+#include "tx_registered_items_menu.h"
 #include "trainer_see.h"
 #include "trainer_hill.h"
 #include "vs_seeker.h"
@@ -98,6 +99,7 @@ void FieldClearPlayerInput(struct FieldInput *input)
     input->input_field_1_2 = FALSE;
     input->input_field_1_3 = FALSE;
     input->dpadDirection = 0;
+    input->pressedListButton = FALSE;
 }
 
 void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
@@ -118,8 +120,16 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
                 input->pressedAButton = TRUE;
             if (newKeys & B_BUTTON)
                 input->pressedBButton = TRUE;
-            if (newKeys & R_BUTTON && !FlagGet(DN_FLAG_SEARCHING))
-                input->pressedRButton = TRUE;
+            if (newKeys & L_BUTTON && gSaveBlock2Ptr->optionsButtonMode != 2)
+                input->pressedListButton = TRUE;
+            if (newKeys & R_BUTTON)
+            {
+                if(!FlagGet(DN_FLAG_SEARCHING)){
+                    input->pressedRButton = TRUE;
+                }
+                else
+                    input->pressedListButton = TRUE;
+            }
         }
 
         if (heldKeys & (DPAD_UP | DPAD_DOWN | DPAD_LEFT | DPAD_RIGHT))
@@ -230,8 +240,13 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     if (input->tookStep && TryFindHiddenPokemon())
         return TRUE;
 
-    if (input->pressedSelectButton && UseRegisteredKeyItemOnField() == TRUE)
+    if (input->pressedSelectButton && UseRegisteredKeyItemOnField(0) == TRUE)
         return TRUE;
+    else if (input->pressedListButton) 
+    {
+        TxRegItemsMenu_OpenMenu();
+        return TRUE;
+    }
 
     if (input->pressedRButton && TryStartDexNavSearch())
         return TRUE;
